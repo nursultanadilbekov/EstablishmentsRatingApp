@@ -1,39 +1,32 @@
 package com.example.manga;
 
-import javafx.beans.property.*;
-
 public class Manga {
-    private final StringProperty title;
-    private final StringProperty genre;
-    private final DoubleProperty price;
-    private final IntegerProperty stock;
-    private final DoubleProperty rating;
+    private int id;
+    private String title;
+    private String genre;
+    private String description;
 
-    public Manga(String title, String genre, double price, int stock, double rating) {
-        this.title = new SimpleStringProperty(title);
-        this.genre = new SimpleStringProperty(genre);
-        this.price = new SimpleDoubleProperty(price);
-        this.stock = new SimpleIntegerProperty(stock);
-        this.rating = new SimpleDoubleProperty(rating);
+    // Constructors, getters, and setters
+    public Manga(int id, String title, String genre, String description) {
+        this.id = id;
+        this.title = title;
+        this.genre = genre;
+        this.description = description;
     }
 
-    public StringProperty titleProperty() {
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
         return title;
     }
 
-    public StringProperty genreProperty() {
+    public String getGenre() {
         return genre;
     }
 
-    public DoubleProperty priceProperty() {
-        return price;
-    }
-
-    public IntegerProperty stockProperty() {
-        return stock;
-    }
-
-    public DoubleProperty ratingProperty() {
-        return rating;
+    public String getDescription() {
+        return description;
     }
 }

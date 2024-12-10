@@ -15,11 +15,12 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.postgresql</groupId>-->
-<!--            <artifactId>postgresql</artifactId>-->
-<!--            <version>42.6.0</version> &lt;!&ndash; Use the latest version &ndash;&gt;-->
-<!--        </dependency>-->
+            <!-- Другие зависимости -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.2</version> <!-- This is the latest version of the JDBC driver as of now -->
+        </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
