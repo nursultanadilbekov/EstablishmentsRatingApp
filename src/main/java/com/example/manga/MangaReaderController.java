@@ -17,15 +17,13 @@ public class MangaReaderController {
     void loadMangaList() {
         List<Manga> mangaList = model.getMangaList();
         if (mangaList.isEmpty()) {
-            // Handle the case where the manga list is empty, perhaps with a warning
             System.out.println("Manga list is empty");
         }
         List<String> mangaTitles = mangaList.stream()
                 .map(Manga::getTitle)
-                .toList(); // Java 16+ method for immutable lists
-        view.updateMangaList(mangaTitles);
+                .toList();
+        view.updateMangaList(mangaList);
     }
-
 
     private void loadChapters(String selectedMangaTitle) {
         Optional<Manga> selectedMangaOpt = model.getMangaList().stream()
@@ -40,5 +38,4 @@ public class MangaReaderController {
             view.updateChapterList(selectedMangaTitle, chapters);
         });
     }
-
 }

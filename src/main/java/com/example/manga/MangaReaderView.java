@@ -1,81 +1,73 @@
 package com.example.manga;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+
 import java.util.List;
 
 public class MangaReaderView {
     private Stage stage;
     private ListView<String> mangaListView;
     private ListView<String> chapterListView;
-    private Button backButton;  // Button to go back to the manga list
+    private Button backButton;
     private MangaSelectionAction mangaSelectionAction;
-    private List<String> mangaTitles; // Store manga titles
+    private List<Manga> mangaList;
 
-    // Constructor
     public MangaReaderView(Stage stage) {
         this.stage = stage;
 
-        // Set up ListView for manga list and chapter list
         mangaListView = new ListView<>();
         chapterListView = new ListView<>();
         backButton = new Button("Back to Manga List");
 
-        // Set up layout using BorderPane
         BorderPane layout = new BorderPane();
-        layout.setTop(backButton);  // Set back button at the top
-        layout.setCenter(mangaListView);  // Initially show manga list
+        layout.setTop(backButton);
+        layout.setCenter(mangaListView);
 
-        // Create Scene
         Scene scene = new Scene(layout, 400, 600);
         stage.setTitle("Manga Reader");
         stage.setScene(scene);
 
-        // Hide the back button initially
         backButton.setVisible(false);
 
-        // Action when the back button is clicked
-        backButton.setOnAction(event -> {
-            // Simply call a method to show the manga list
-            showMangaList();
-        });
+        backButton.setOnAction(event -> showMangaList());
 
-        // Action when a manga is double-clicked from the list
         mangaListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {  // Check if double-clicked
+            if (event.getClickCount() == 2) {
                 String selectedMangaTitle = mangaListView.getSelectionModel().getSelectedItem();
                 if (selectedMangaTitle != null && mangaSelectionAction != null) {
-                    // Clear the manga list and load chapters for the selected manga
-                    mangaListView.getItems().clear();  // Clear the manga list
-                    mangaSelectionAction.onMangaSelected(selectedMangaTitle);  // Load chapters
+                    mangaSelectionAction.onMangaSelected(selectedMangaTitle);
                 }
             }
         });
     }
 
-    // Method to update the manga list in the view
-    public void updateMangaList(List<String> mangaTitles) {
-        this.mangaTitles = mangaTitles;  // Store manga titles
-        mangaListView.getItems().setAll(mangaTitles);
+    public void updateMangaList(List<Manga> mangaList) {
+        this.mangaList = mangaList;
+        mangaListView.getItems().setAll(
+                mangaList.stream().map(manga -> String.format("%s (%s)", manga.getTitle(), manga.getAuthor())).toList()
+        );
         chapterListView.getItems().clear();
-        backButton.setVisible(false);  // Hide the back button when displaying manga list
+        backButton.setVisible(false);
     }
 
-    // Method to update the chapter list in the view
     public void updateChapterList(String mangaTitle, List<String> chapters) {
         chapterListView.getItems().setAll(chapters);
 
-        // Show chapter list and back button
         BorderPane layout = (BorderPane) stage.getScene().getRoot();
-        layout.setCenter(chapterListView);  // Display chapter list instead of manga list
-        backButton.setVisible(true);  // Show the back button
+        layout.setCenter(new VBox(
+                new Text("Chapters for " + mangaTitle),
+                chapterListView
+        ));
+        backButton.setVisible(true);
 
-        // Optional: display a message if there are no chapters
         if (chapters.isEmpty()) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("No Chapters");
@@ -84,22 +76,16 @@ public class MangaReaderView {
         }
     }
 
-    // Method to show the manga list again
     public void showMangaList() {
-        if (mangaTitles != null) {
-            mangaListView.getItems().setAll(mangaTitles);  // Re-add manga titles
-        }
         BorderPane layout = (BorderPane) stage.getScene().getRoot();
-        layout.setCenter(mangaListView);  // Set manga list back in the center
-        backButton.setVisible(false);  // Hide the back button when we are back to manga list
+        layout.setCenter(mangaListView);
+        backButton.setVisible(false);
     }
 
-    // Method to set the manga selection action (passed from the controller)
     public void setMangaSelectionAction(MangaSelectionAction action) {
         this.mangaSelectionAction = action;
     }
 
-    // Functional interface for manga selection
     @FunctionalInterface
     public interface MangaSelectionAction {
         void onMangaSelected(String selectedMangaTitle);
