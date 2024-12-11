@@ -1,39 +1,37 @@
 package com.example.manga;
 
-import javafx.event.ActionEvent;
-
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 public class MangaReaderController {
-    private MangaReaderView view;
-    private MangaService model;
+    private final MangaReaderView view;
+    private final MangaService model;
 
     public MangaReaderController(MangaReaderView view, MangaService model) {
         this.view = view;
         this.model = model;
-
-        // Set up the action for the Load button
-        this.view.setLoadButtonAction(this::loadChapters);
+        this.view.setMangaSelectionAction(this::loadChapters);
+        loadMangaList();
     }
 
-    // Method to load manga list
-    public void loadMangaList() {
+    // Load manga list and pass titles to the view
+    void loadMangaList() {
         List<Manga> mangaList = model.getMangaList();
-        List<String> titles = new ArrayList<>();
-        for (Manga manga : mangaList) {
-            titles.add(manga.getTitle());
-        }
-        view.updateMangaList(titles);
+        List<String> mangaTitles = mangaList.stream()
+                .map(Manga::getTitle)
+                .toList(); // Java 16+ method for immutable lists
+        view.updateMangaList(mangaTitles);
     }
 
-    // Method to load chapters for the selected manga
-    public void loadChapters(ActionEvent event) {
-        int selectedIndex = view.getSelectedMangaIndex();
-        if (selectedIndex != -1) {
-            List<Manga> mangaList = model.getMangaList();
-            Manga selectedManga = mangaList.get(selectedIndex);
+    // Load chapters for selected manga and update the view
+    private void loadChapters(String selectedMangaTitle) {
+        Optional<Manga> selectedMangaOpt = model.getMangaList().stream()
+                .filter(manga -> manga.getTitle().equals(selectedMangaTitle))
+                .findFirst();
+
+        selectedMangaOpt.ifPresent(selectedManga -> {
             List<String> chapters = model.getChaptersForManga(selectedManga.getId());
-            view.updateChapterList(chapters);
-        }
+            view.updateChapterList(selectedMangaTitle, chapters);
+        });
     }
 }

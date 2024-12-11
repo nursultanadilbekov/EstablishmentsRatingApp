@@ -4,29 +4,23 @@ public class Manga {
     private int id;
     private String title;
     private String genre;
-    private String description;
+    private String status;
 
-    // Constructors, getters, and setters
-    public Manga(int id, String title, String genre, String description) {
+    public Manga(int id, String title, String genre, String status) {
         this.id = id;
         this.title = title;
         this.genre = genre;
-        this.description = description;
+        this.status = status;
     }
 
-    public int getId() {
-        return id;
-    }
+    // Getters
+    public int getId() { return id; }
+    public String getTitle() { return title; }
+    public String getGenre() { return genre; }
+    public String getStatus() { return status; }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getGenre() {
-        return genre;
-    }
-
-    public String getDescription() {
-        return description;
+    @Override
+    public String toString() {
+        return String.format("Manga{id=%d, title='%s', genre='%s', status='%s'}", id, title, genre, status);
     }
 }

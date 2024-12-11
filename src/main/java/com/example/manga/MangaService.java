@@ -4,13 +4,17 @@ import java.sql.*;
 import java.util.*;
 
 public class MangaService {
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/manga_db";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/manga";
     private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "your_password";
+    private static final String DB_PASSWORD = "1234";
 
-    // Establish database connection
-    public static Connection connect() throws SQLException {
-        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    // Establish database connection without using connection pool
+    private static Connection connect() throws SQLException {
+        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        if (connection == null || !connection.isValid(5)) { // Check connection validity with a timeout of 5 seconds
+            throw new SQLException("Failed to establish a valid database connection.");
+        }
+        return connection;
     }
 
     // Fetch manga list
@@ -19,7 +23,7 @@ public class MangaService {
         String query = "SELECT * FROM Manga";
         try (Connection conn = connect(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                mangaList.add(new Manga(rs.getInt("id"), rs.getString("title"), rs.getString("genre"), rs.getString("description")));
+                mangaList.add(new Manga(rs.getInt("mangaid"), rs.getString("title"), rs.getString("genre"), rs.getString("status")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
