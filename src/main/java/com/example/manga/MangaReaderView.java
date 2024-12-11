@@ -15,6 +15,7 @@ public class MangaReaderView {
     private ListView<String> chapterListView;
     private Button backButton;  // Button to go back to the manga list
     private MangaSelectionAction mangaSelectionAction;
+    private List<String> mangaTitles; // Store manga titles
 
     // Constructor
     public MangaReaderView(Stage stage) {
@@ -59,6 +60,7 @@ public class MangaReaderView {
 
     // Method to update the manga list in the view
     public void updateMangaList(List<String> mangaTitles) {
+        this.mangaTitles = mangaTitles;  // Store manga titles
         mangaListView.getItems().setAll(mangaTitles);
         chapterListView.getItems().clear();
         backButton.setVisible(false);  // Hide the back button when displaying manga list
@@ -82,16 +84,19 @@ public class MangaReaderView {
         }
     }
 
-    // Method to set the manga selection action (passed from the controller)
-    public void setMangaSelectionAction(MangaSelectionAction action) {
-        this.mangaSelectionAction = action;
-    }
-
     // Method to show the manga list again
     public void showMangaList() {
+        if (mangaTitles != null) {
+            mangaListView.getItems().setAll(mangaTitles);  // Re-add manga titles
+        }
         BorderPane layout = (BorderPane) stage.getScene().getRoot();
         layout.setCenter(mangaListView);  // Set manga list back in the center
         backButton.setVisible(false);  // Hide the back button when we are back to manga list
+    }
+
+    // Method to set the manga selection action (passed from the controller)
+    public void setMangaSelectionAction(MangaSelectionAction action) {
+        this.mangaSelectionAction = action;
     }
 
     // Functional interface for manga selection
