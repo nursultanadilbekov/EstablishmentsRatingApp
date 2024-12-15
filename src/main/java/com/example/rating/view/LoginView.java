@@ -13,12 +13,12 @@ public class LoginView extends JFrame {
     private JButton loginButton;
     private EstablishmentController controller;
 
-    public LoginView(EstablishmentController controller) {
+    public LoginView(EstablishmentController controller, WelcomeView welcomeView) {
         this.controller = controller;
 
         setTitle("Login");
         setSize(300, 200);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);  // Center the window
         setLayout(new BorderLayout());
 
@@ -62,19 +62,27 @@ public class LoginView extends JFrame {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
-                // Call the controller method to validate the user login
                 if (controller.validateLogin(username, password)) {
-                    JOptionPane.showMessageDialog(null, "Login successful!");
-                    dispose();  // Close login screen
-                    new MainView(controller);  // Open main view (adjust this to your needs)
+                    DialogUtil.showMessage("Login successful!", "Success", false);
+                    setVisible(false);// Close login screen
+                    new MainView(controller);  // Open main view
                 } else {
-                    JOptionPane.showMessageDialog(null, "Invalid username or password.");
+                    DialogUtil.showMessage("Invalid username or password.", "Error", true);
                 }
+
             }
         });
 
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
+
+        // Add a window listener to show the WelcomeView when this window is closed
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                welcomeView.setVisible(true);
+            }
+        });
 
         // Display the login window
         setVisible(true);

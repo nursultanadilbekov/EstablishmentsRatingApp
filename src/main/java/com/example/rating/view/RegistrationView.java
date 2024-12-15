@@ -14,12 +14,12 @@ public class RegistrationView extends JFrame {
     private JButton registerButton;
     private EstablishmentController controller;
 
-    public RegistrationView(EstablishmentController controller) {
+    public RegistrationView(EstablishmentController controller, WelcomeView welcomeView) {
         this.controller = controller;
 
         setTitle("Register");
         setSize(300, 250);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);  // Center the window
         setLayout(new BorderLayout());
 
@@ -79,18 +79,27 @@ public class RegistrationView extends JFrame {
                     // Call the controller to register the user
                     boolean success = controller.registerUser(username, password);
                     if (success) {
-                        JOptionPane.showMessageDialog(null, "Registration successful!");
-                        dispose();  // Close registration screen
-                        new LoginView(controller); // Show login screen after registration
+                        DialogUtil.showMessage("Registration successful!", "Success", false);
+                        setVisible(false);  // Close registration screen
+                        new LoginView(controller, welcomeView); // Show login screen
                     } else {
-                        JOptionPane.showMessageDialog(null, "Username is already taken.");
+                        DialogUtil.showMessage("Username is already taken.", "Error", true);
                     }
+
                 }
             }
         });
 
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
+        // Add a window listener to show the WelcomeView when this window is closed
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                // Ensure the WelcomeView is shown again when this window closes
+                welcomeView.setVisible(true);
+            }
+        });
 
         // Display the registration window
         setVisible(true);

@@ -1,9 +1,8 @@
 package com.example.rating;
 
 import com.example.rating.controller.EstablishmentController;
-import com.example.rating.model.DatabaseManager;
-import com.example.rating.view.LoginView;
-import com.example.rating.view.RegistrationView;
+import com.example.rating.view.DialogUtil;
+import com.example.rating.view.WelcomeView;
 
 import javax.swing.*;
 import java.sql.SQLException;
@@ -12,22 +11,20 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
+                // Initialize the controller
                 EstablishmentController controller = new EstablishmentController();
 
-                // Prompt user to either login or register
-                int choice = JOptionPane.showOptionDialog(null, "Choose an option", "Welcome",
-                        JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
-                        null, new Object[]{"Login", "Register"}, "Login");
-
-                if (choice == 0) {
-                    new LoginView(controller);  // Open login screen
-                } else if (choice == 1) {
-                    new RegistrationView(controller);  // Open registration screen
-                }
-
+                // Launch WelcomeView
+                new WelcomeView(controller);
             } catch (SQLException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error connecting to database");
+
+                // Show error message using DialogUtil
+                DialogUtil.showMessage(
+                        "An error occurred while connecting to the database. Please try again later.",
+                        "Database Connection Error",
+                        true
+                );
             }
         });
     }
