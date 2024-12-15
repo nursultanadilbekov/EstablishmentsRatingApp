@@ -2,121 +2,110 @@ package com.example.rating.controller;
 
 import com.example.rating.model.DatabaseManager;
 import com.example.rating.model.Establishment;
+import com.example.rating.view.AddEstablishmentView;
 import com.example.rating.view.EstablishmentView;
+import com.example.rating.view.TopEstablishmentsView;
+import com.example.rating.view.ViewEstablishmentsView;
 
 import javax.swing.*;
 import java.sql.SQLException;
 import java.util.List;
 
 public class EstablishmentController {
-    private EstablishmentView establishmentView;
+    private AddEstablishmentView addEstablishmentView;
+    private TopEstablishmentsView topEstablishmentsView;
+    private ViewEstablishmentsView viewEstablishmentsView;
     private DatabaseManager databaseManager;
 
     public EstablishmentController() throws SQLException {
-        this.establishmentView = new EstablishmentView();
-        this.databaseManager = new DatabaseManager(); // Database manager instance
+        this.addEstablishmentView = new AddEstablishmentView();
+        this.topEstablishmentsView = new TopEstablishmentsView();
+        this.viewEstablishmentsView = new ViewEstablishmentsView();
+        this.databaseManager = new DatabaseManager();
     }
 
-    public JPanel getView() {
-        return establishmentView.getView();
-    }
 
     // Method to handle button clicks and navigate accordingly
+
     public void handleButtonClick(String action) {
         switch (action) {
             case "AddEstablishment":
-                showAddEstablishmentView();
+                getAddEstablishmentView();
                 break;
             case "TopEstablishments":
-                showTopEstablishmentsView();
+                getTopEstablishmentsView();
                 break;
             case "ViewEstablishments":
-                showViewEstablishmentsView();
+                    getViewEstablishmentsView();
                 break;
             default:
                 JOptionPane.showMessageDialog(null, "Unknown action: " + action);
         }
     }
-
-    // Show Add Establishment View
-    public void showAddEstablishmentView() {
-        establishmentView.showView("AddEstablishment");
-    }
-
-    // Show Top Establishments View
-    public void showTopEstablishmentsView() {
-        try {
-            List<Establishment> topEstablishments = databaseManager.getTopEstablishments();
-            establishmentView.showTopEstablishments(topEstablishments);
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error fetching top establishments.");
-        }
-    }
-
-    // Show All Establishments
-    public void showViewEstablishmentsView() {
-        try {
-            List<Establishment> establishments = databaseManager.getTopEstablishments();  // Or use another method if needed
-            establishmentView.showEstablishments(establishments);
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error fetching establishments.");
-        }
-    }
-
-    // Add a new establishment
-    public void addNewEstablishment(String name, String address, String description, String category) {
-        try {
-            databaseManager.addEstablishment(name, address, description, category);
-            JOptionPane.showMessageDialog(null, "Establishment added successfully.");
-            refreshTopEstablishmentsView();
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error adding establishment.");
-        }
-    }
-
+//    // Add a new establishment
+//    public void addNewEstablishment(String name, String address, String description, String category) {
+//        try {
+//            databaseManager.addEstablishment(name, address, description, category);
+//            JOptionPane.showMessageDialog(null, "Establishment added successfully.");
+//            refreshTopEstablishmentsView();
+//        } catch (SQLException e) {
+//            handleDatabaseError(e, "Error adding establishment.");
+//        }
+//    }
     // Like an establishment
-    public void likeEstablishment(int id) {
-        updateEstablishment(id, "liked");
-    }
 
-    // Dislike an establishment
-    public void dislikeEstablishment(int id) {
-        updateEstablishment(id, "disliked");
-    }
-
-    // Helper method to handle liking and disliking establishments
-    private void updateEstablishment(int id, String action) {
-        try {
-            if (action.equals("liked")) {
-                databaseManager.likeEstablishment(id);
-            } else if (action.equals("disliked")) {
-                databaseManager.dislikeEstablishment(id);
-            }
-            JOptionPane.showMessageDialog(null, "Establishment " + action + " successfully.");
-            refreshTopEstablishmentsView();
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error " + action + " establishment.");
-        }
-    }
+//    public void likeEstablishment(int id) {
+//        updateEstablishment(id, "liked");
+//    }
+//    // Dislike an establishment
+//
+//    public void dislikeEstablishment(int id) {
+//        updateTopEstablishments(id, "disliked");
+//    }
 
     // Handle database errors and show error messages
+
     private void handleDatabaseError(SQLException e, String message) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, message);
     }
-
-    // Refresh the top establishments view after any update
-    private void refreshTopEstablishmentsView() {
-        showTopEstablishmentsView(); // This refreshes the view by fetching the latest data
-    }
-
     // Method to validate user login
+
     public boolean validateLogin(String username, String password) {
         try {
             return databaseManager.validateUserLogin(username, password);
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    public JPanel getAddEstablishmentView() {
+        return addEstablishmentView.getView();
+    }
+
+    public JPanel getTopEstablishmentsView() {
+        return topEstablishmentsView.getView();
+    }
+
+    public JPanel getViewEstablishmentsView() {
+        return viewEstablishmentsView.getView();
+    }
+
+    public void updateTopEstablishments() {
+        try {
+            List<Establishment> establishments = databaseManager.getTopEstablishments();
+            topEstablishmentsView.updateList(establishments);
+        } catch (SQLException e) {
+            handleDatabaseError(e, "Error fetching top establishments.");
+        }
+    }
+
+    public void updateAllEstablishments() {
+        try {
+            List<Establishment> establishments = databaseManager.getAllEstablishments();
+            viewEstablishmentsView.updateList(establishments);
+        } catch (SQLException e) {
+            handleDatabaseError(e, "Error fetching establishments.");
         }
     }
 

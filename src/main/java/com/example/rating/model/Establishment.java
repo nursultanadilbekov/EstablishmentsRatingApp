@@ -4,41 +4,51 @@ import java.time.LocalDateTime;
 
 public class Establishment {
     private int id;
+    private int userId;
     private String name;
     private String address;
     private String description;
     private int likes;
     private int dislikes;
-    private String category;
+    private int categoryId; // Changed from category to categoryId
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Modify the constructor to accept LocalDateTime
-    public Establishment(int id, String name, String address, String description, int likes, int dislikes,
-                         String category, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    // Constructor
+    public Establishment(int id, int userId, String name, String address, String description,
+                         int likes, int dislikes, int categoryId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
+        this.userId = userId;
         this.name = name;
         this.address = address;
         this.description = description;
         this.likes = likes;
         this.dislikes = dislikes;
-        this.category = category;
+        this.categoryId = categoryId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    // Геттеры и сеттеры с валидацией
+    // Getters and Setters with validation
     public int getId() {
         return id;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 
     public String getName() {
         return name;
     }
+    public int getRating(){
+        return likes;
+    }
+    
 
     public void setName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название не может быть пустым.");
+            throw new IllegalArgumentException("Name cannot be empty.");
         }
         this.name = name;
         updateTimestamp();
@@ -50,7 +60,7 @@ public class Establishment {
 
     public void setAddress(String address) {
         if (address == null || address.trim().isEmpty()) {
-            throw new IllegalArgumentException("Адрес не может быть пустым.");
+            throw new IllegalArgumentException("Address cannot be empty.");
         }
         this.address = address;
         updateTimestamp();
@@ -62,7 +72,7 @@ public class Establishment {
 
     public void setDescription(String description) {
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("Описание не может быть пустым.");
+            throw new IllegalArgumentException("Description cannot be empty.");
         }
         this.description = description;
         updateTimestamp();
@@ -73,8 +83,7 @@ public class Establishment {
     }
 
     public void incrementLikes() {
-        this.likes++;
-        updateTimestamp();
+        incrementVotes(true);
     }
 
     public int getDislikes() {
@@ -82,19 +91,18 @@ public class Establishment {
     }
 
     public void incrementDislikes() {
-        this.dislikes++;
-        updateTimestamp();
+        incrementVotes(false);
     }
 
-    public String getCategory() {
-        return category;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategory(String category) {
-        if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Категория не может быть пустой.");
+    public void setCategoryId(int categoryId) {
+        if (categoryId <= 0) {
+            throw new IllegalArgumentException("Category ID cannot be less than or equal to zero.");
         }
-        this.category = category;
+        this.categoryId = categoryId;
         updateTimestamp();
     }
 
@@ -106,13 +114,23 @@ public class Establishment {
         return updatedAt;
     }
 
-    // Метод для расчёта популярности
+    // Method to calculate popularity score
     public double getPopularityScore() {
         int totalVotes = likes + dislikes;
         return totalVotes == 0 ? 0 : (double) likes / totalVotes * 100;
     }
 
-    // Метод обновления времени последнего изменения
+    // Helper method to increment likes or dislikes
+    private void incrementVotes(boolean isLike) {
+        if (isLike) {
+            this.likes++;
+        } else {
+            this.dislikes++;
+        }
+        updateTimestamp();
+    }
+
+    // Method to update timestamp when any field is updated
     private void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }
@@ -120,8 +138,12 @@ public class Establishment {
     @Override
     public String toString() {
         return String.format(
-                "%s (%s) - Категория: %s | Лайков: %d, Дизлайков: %d | Популярность: %.2f%%",
-                name, address, category, likes, dislikes, getPopularityScore()
+                "%s (%s) - Category ID: %d | Likes: %d, Dislikes: %d | Popularity: %.2f%%",
+                name, address, categoryId, likes, dislikes, getPopularityScore()
         );
+    }
+
+    public Object getCategory() {
+        return categoryId;
     }
 }

@@ -64,17 +64,18 @@ public class DatabaseManager {
         }
     }
 
-    // Add a new establishment with all required fields
-    public void addEstablishment(String name, String address, String description, String category) throws SQLException {
-        String query = "INSERT INTO establishments (name, address, description, likes, dislikes, category, created_at, updated_at) " +
-                "VALUES (?, ?, ?, 0, 0, ?, ?, ?)";
+    // Add a new establishment with user_id and category_id
+    public void addEstablishment(int userId, String name, String address, String description, int categoryId) throws SQLException {
+        String query = "INSERT INTO establishments (user_id, name, address, description, category_id, likes, dislikes, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, name);
-            stmt.setString(2, address);
-            stmt.setString(3, description);
-            stmt.setString(4, category);
-            stmt.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setInt(1, userId); // Set the user ID
+            stmt.setString(2, name);
+            stmt.setString(3, address);
+            stmt.setString(4, description);
+            stmt.setInt(5, categoryId); // Set the category ID
             stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
             stmt.executeUpdate();
         }
     }
@@ -87,12 +88,13 @@ public class DatabaseManager {
             while (rs.next()) {
                 establishments.add(new Establishment(
                         rs.getInt("id"),
+                        rs.getInt("user_id"),
                         rs.getString("name"),
                         rs.getString("address"),
                         rs.getString("description"),
                         rs.getInt("likes"),
                         rs.getInt("dislikes"),
-                        rs.getString("category"),
+                        rs.getInt("category_id"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         rs.getTimestamp("updated_at").toLocalDateTime()
                 ));
@@ -101,22 +103,21 @@ public class DatabaseManager {
         }
     }
 
-    // Fetch establishments added by a specific user
-    public List<Establishment> getUserEstablishments(int userId) throws SQLException {
-        String query = "SELECT * FROM establishments WHERE user_id = ? ORDER BY created_at DESC";
+    public List<Establishment> getAllEstablishments() throws SQLException {
+        String query = "SELECT * FROM establishments ORDER BY created_at DESC";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 List<Establishment> establishments = new ArrayList<>();
                 while (rs.next()) {
                     establishments.add(new Establishment(
                             rs.getInt("id"),
+                            rs.getInt("user_id"),
                             rs.getString("name"),
                             rs.getString("address"),
                             rs.getString("description"),
                             rs.getInt("likes"),
                             rs.getInt("dislikes"),
-                            rs.getString("category"),
+                            rs.getInt("category_id"),
                             rs.getTimestamp("created_at").toLocalDateTime(),
                             rs.getTimestamp("updated_at").toLocalDateTime()
                     ));
@@ -125,6 +126,7 @@ public class DatabaseManager {
             }
         }
     }
+
 
     // Like an establishment
     public void likeEstablishment(int id) throws SQLException {
@@ -155,12 +157,13 @@ public class DatabaseManager {
                 if (rs.next()) {
                     return new Establishment(
                             rs.getInt("id"),
+                            rs.getInt("user_id"),
                             rs.getString("name"),
                             rs.getString("address"),
                             rs.getString("description"),
                             rs.getInt("likes"),
                             rs.getInt("dislikes"),
-                            rs.getString("category"),
+                            rs.getInt("category_id"),
                             rs.getTimestamp("created_at").toLocalDateTime(),
                             rs.getTimestamp("updated_at").toLocalDateTime()
                     );

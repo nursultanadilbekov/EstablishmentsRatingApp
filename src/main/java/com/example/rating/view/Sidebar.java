@@ -7,60 +7,64 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class Sidebar {
-    private JPanel sidebar;
-    private JPanel mainPanel;
+    private final JPanel sidebar;
+    private final JPanel mainPanel;
 
     public Sidebar(EstablishmentController establishmentController) {
-        sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(new Color(50, 50, 50)); // Dark background
-        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20)); // Padding around the sidebar
-
-        // Menu header
-        JLabel title = new JLabel("Menu");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setForeground(Color.WHITE);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Buttons with listeners for different views
-        JButton addEstablishmentButton = createStyledButton("Add Establishment");
-        addEstablishmentButton.addActionListener(e -> establishmentController.handleButtonClick("AddEstablishment"));
-
-        JButton topEstablishmentsButton = createStyledButton("Top Establishments");
-        topEstablishmentsButton.addActionListener(e -> establishmentController.handleButtonClick("TopEstablishments"));
-
-        JButton viewEstablishmentsButton = createStyledButton("View Establishments");
-        viewEstablishmentsButton.addActionListener(e -> establishmentController.handleButtonClick("ViewEstablishments"));
-
-        // Adding buttons to the sidebar
-        sidebar.add(title);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 20))); // Divider
-        sidebar.add(addEstablishmentButton);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(topEstablishmentsButton);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(viewEstablishmentsButton);
-        sidebar.add(Box.createVerticalGlue()); // Flexible divider
-
-        // Combine sidebar and main content panel
-        mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(sidebar, BorderLayout.WEST);
-        mainPanel.add(establishmentController.getView(), BorderLayout.CENTER); // Adding the view from the controller
+        sidebar = createSidebar(establishmentController);
+        mainPanel = createMainPanel(establishmentController);
     }
 
-    private JButton createStyledButton(String text) {
+    private JPanel createSidebar(EstablishmentController establishmentController) {
+        JPanel sidebar = new JPanel();
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        sidebar.setBackground(new Color(50, 50, 50));
+        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        // Header label
+        JLabel title = createTitleLabel("Menu");
+        sidebar.add(title);
+        sidebar.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Buttons
+        sidebar.add(createButton("Add Establishment", () -> establishmentController.handleButtonClick("AddEstablishment")));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebar.add(createButton("Top Establishments", () -> establishmentController.handleButtonClick("TopEstablishments")));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebar.add(createButton("View Establishments", () -> establishmentController.handleButtonClick("ViewEstablishments")));
+        sidebar.add(Box.createVerticalGlue());
+
+        return sidebar;
+    }
+
+    private JPanel createMainPanel(EstablishmentController establishmentController) {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(sidebar, BorderLayout.WEST);
+        mainPanel.add(establishmentController.getViewEstablishmentsView(), BorderLayout.CENTER);
+        return mainPanel;
+    }
+
+    private JLabel createTitleLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Arial", Font.BOLD, 18));
+        label.setForeground(Color.WHITE);
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return label;
+    }
+
+    private JButton createButton(String text, Runnable action) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFont(new Font("Arial", Font.PLAIN, 14));
-        button.setForeground(Color.WHITE); // White text
-        button.setBackground(new Color(70, 130, 180)); // Blue background
-        button.setFocusPainted(false); // Remove focus border
-        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Padding
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
+        button.setForeground(Color.WHITE);
+        button.setBackground(new Color(70, 130, 180));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(e -> action.run());
         return button;
     }
 
-    // Method to set preferred size for the sidebar
     public void setPreferredSize(Dimension dimension) {
         sidebar.setPreferredSize(dimension);
     }
