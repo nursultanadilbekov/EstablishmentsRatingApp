@@ -3,7 +3,6 @@ package com.example.rating.controller;
 import com.example.rating.model.DatabaseManager;
 import com.example.rating.model.Establishment;
 import com.example.rating.view.AddEstablishmentView;
-import com.example.rating.view.EstablishmentView;
 import com.example.rating.view.TopEstablishmentsView;
 import com.example.rating.view.ViewEstablishmentsView;
 
@@ -31,12 +30,18 @@ public class EstablishmentController {
         switch (action) {
             case "AddEstablishment":
                 getAddEstablishmentView();
+                updateAllEstablishments();
+                updateTopEstablishments();
                 break;
             case "TopEstablishments":
+                updateAllEstablishments();
+                updateTopEstablishments();
                 getTopEstablishmentsView();
                 break;
             case "ViewEstablishments":
-                    getViewEstablishmentsView();
+                updateAllEstablishments();
+                updateTopEstablishments();
+                getViewEstablishmentsView();
                 break;
             default:
                 JOptionPane.showMessageDialog(null, "Unknown action: " + action);
@@ -80,14 +85,17 @@ public class EstablishmentController {
         }
     }
     public JPanel getAddEstablishmentView() {
+        System.out.println("add");
         return addEstablishmentView.getView();
     }
 
     public JPanel getTopEstablishmentsView() {
+        System.out.println("top");
         return topEstablishmentsView.getView();
     }
 
     public JPanel getViewEstablishmentsView() {
+        System.out.println("view");
         return viewEstablishmentsView.getView();
     }
 

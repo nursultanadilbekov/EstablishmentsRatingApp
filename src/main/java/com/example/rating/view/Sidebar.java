@@ -5,43 +5,38 @@ import com.example.rating.controller.EstablishmentController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public class Sidebar {
-    private final JPanel sidebar;
-    private final JPanel mainPanel;
+    private final JPanel sidebarPanel;
 
-    public Sidebar(EstablishmentController establishmentController) {
-        sidebar = createSidebar(establishmentController);
-        mainPanel = createMainPanel(establishmentController);
+    public Sidebar(EstablishmentController controller, Consumer<JPanel> setViewCallback) {
+        sidebarPanel = createSidebar(controller, setViewCallback);
     }
 
-    private JPanel createSidebar(EstablishmentController establishmentController) {
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(new Color(50, 50, 50));
-        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20));
+    private JPanel createSidebar(EstablishmentController controller, Consumer<JPanel> setViewCallback) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(50, 50, 50));
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         // Header label
         JLabel title = createTitleLabel("Menu");
-        sidebar.add(title);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(title);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Buttons
-        sidebar.add(createButton("Add Establishment", () -> establishmentController.handleButtonClick("AddEstablishment")));
-        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(createButton("Top Establishments", () -> establishmentController.handleButtonClick("TopEstablishments")));
-        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(createButton("View Establishments", () -> establishmentController.handleButtonClick("ViewEstablishments")));
-        sidebar.add(Box.createVerticalGlue());
+        // Buttons with actions to update the main view
+        panel.add(createButton("Add Establishment",
+                () -> setViewCallback.accept(controller.getAddEstablishmentView())));
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(createButton("Top Establishments",
+                () -> setViewCallback.accept(controller.getTopEstablishmentsView())));
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(createButton("View Establishments",
+                () -> setViewCallback.accept(controller.getViewEstablishmentsView())));
+        panel.add(Box.createVerticalGlue());
 
-        return sidebar;
-    }
-
-    private JPanel createMainPanel(EstablishmentController establishmentController) {
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(sidebar, BorderLayout.WEST);
-        mainPanel.add(establishmentController.getViewEstablishmentsView(), BorderLayout.CENTER);
-        return mainPanel;
+        return panel;
     }
 
     private JLabel createTitleLabel(String text) {
@@ -65,11 +60,7 @@ public class Sidebar {
         return button;
     }
 
-    public void setPreferredSize(Dimension dimension) {
-        sidebar.setPreferredSize(dimension);
-    }
-
     public JPanel getView() {
-        return mainPanel;
+        return sidebarPanel;
     }
 }
