@@ -18,26 +18,51 @@ public class RegistrationView extends JFrame {
         this.controller = controller;
 
         setTitle("Register");
-        setSize(300, 200);
+        setSize(300, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);  // Center the window
+        setLayout(new BorderLayout());
 
-        // Create UI components
+        // Set background color and padding
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(new Color(50, 50, 50));  // Dark background
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Create UI components with styles
         usernameField = new JTextField(20);
         passwordField = new JPasswordField(20);
         confirmPasswordField = new JPasswordField(20);
         registerButton = new JButton("Register");
 
-        // Set layout and add components
-        setLayout(new GridLayout(4, 2));
-        add(new JLabel("Username:"));
-        add(usernameField);
-        add(new JLabel("Password:"));
-        add(passwordField);
-        add(new JLabel("Confirm Password:"));
-        add(confirmPasswordField);
-        add(registerButton);
+        // Set text field and button styles
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
+        registerButton.setForeground(Color.WHITE);
+        registerButton.setBackground(new Color(70, 130, 180));  // Blue background
+        registerButton.setFocusPainted(false);  // Remove focus border
+        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));  // Hand cursor on hover
 
-        // Add action listener to the register button
+        // Create labels with text color and alignment
+        JLabel usernameLabel = new JLabel("Username:");
+        JLabel passwordLabel = new JLabel("Password:");
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
+        usernameLabel.setForeground(Color.WHITE);
+        passwordLabel.setForeground(Color.WHITE);
+        confirmPasswordLabel.setForeground(Color.WHITE);
+
+        // Add components to the main panel
+        mainPanel.add(usernameLabel);
+        mainPanel.add(usernameField);
+        mainPanel.add(passwordLabel);
+        mainPanel.add(passwordField);
+        mainPanel.add(confirmPasswordLabel);
+        mainPanel.add(confirmPasswordField);
+        mainPanel.add(registerButton);
+
+        // Add action listener for the register button
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -64,8 +89,10 @@ public class RegistrationView extends JFrame {
             }
         });
 
+        // Add the main panel to the frame
+        add(mainPanel, BorderLayout.CENTER);
+
         // Display the registration window
-        setLocationRelativeTo(null);  // Center the window
         setVisible(true);
     }
 }
