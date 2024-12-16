@@ -34,9 +34,7 @@ public class Establishment {
         return id;
     }
 
-    public int getUserId() {
-        return userId;
-    }
+
 
     public String getName() {
         return name;
@@ -143,7 +141,18 @@ public class Establishment {
         );
     }
 
-    public Object getCategory() {
-        return categoryId;
+    public String getCategory() {
+        switch (categoryId) {
+            case 1:
+                return "Restaurant";
+            case 2:
+                return "Bar";
+            case 3:
+                return "Cafe";
+            case 4:
+                return "Hotel";
+            default:
+                return "Unknown Category";
+        }
     }
 }

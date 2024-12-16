@@ -18,7 +18,7 @@ public class RegistrationView extends JFrame {
         this.controller = controller;
 
         setTitle("Register");
-        setSize(300, 250);
+        setSize(300, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);  // Center the window
         setLayout(new BorderLayout());
@@ -27,7 +27,7 @@ public class RegistrationView extends JFrame {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(new Color(50, 50, 50));  // Dark background
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
 
         // Create UI components with styles
         usernameField = new JTextField(20);
@@ -60,7 +60,12 @@ public class RegistrationView extends JFrame {
         mainPanel.add(passwordField);
         mainPanel.add(confirmPasswordLabel);
         mainPanel.add(confirmPasswordField);
-        mainPanel.add(registerButton);
+
+        // Create a separate panel for the register button
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(new Color(50, 50, 50));  // Same dark background
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));  // Add some space above the button
+        buttonPanel.add(registerButton);
 
         // Add action listener for the register button
         registerButton.addActionListener(new ActionListener() {
@@ -85,18 +90,20 @@ public class RegistrationView extends JFrame {
                     } else {
                         DialogUtil.showMessage("Username is already taken.", "Error", true);
                     }
-
                 }
             }
         });
 
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
+
+        // Add the button panel to the bottom of the frame
+        add(buttonPanel, BorderLayout.SOUTH);
+
         // Add a window listener to show the WelcomeView when this window is closed
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
-            public void windowClosed(java.awt.event.WindowEvent e) {
-                // Ensure the WelcomeView is shown again when this window closes
+            public void windowClosing(java.awt.event.WindowEvent e) {
                 welcomeView.setVisible(true);
             }
         });

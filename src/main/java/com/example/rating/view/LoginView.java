@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class LoginView extends JFrame {
-    private JTextField usernameField;
+    public JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
     private EstablishmentController controller;
@@ -17,7 +17,7 @@ public class LoginView extends JFrame {
         this.controller = controller;
 
         setTitle("Login");
-        setSize(300, 200);
+        setSize(300, 250);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);  // Center the window
         setLayout(new BorderLayout());
@@ -53,7 +53,12 @@ public class LoginView extends JFrame {
         mainPanel.add(usernameField);
         mainPanel.add(passwordLabel);
         mainPanel.add(passwordField);
-        mainPanel.add(loginButton);
+
+        // Create a separate panel for the login button
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(new Color(50, 50, 50));  // Same dark background
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));  // Add some space above the button
+        buttonPanel.add(loginButton);
 
         // Add action listener for the login button
         loginButton.addActionListener(new ActionListener() {
@@ -64,17 +69,19 @@ public class LoginView extends JFrame {
 
                 if (controller.validateLogin(username, password)) {
                     DialogUtil.showMessage("Login successful!", "Success", false);
-                    setVisible(false);// Close login screen
+                    setVisible(false); // Close login screen
                     new MainView(controller);  // Open main view
                 } else {
                     DialogUtil.showMessage("Invalid username or password.", "Error", true);
                 }
-
             }
         });
 
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
+
+        // Add the button panel to the bottom of the frame
+        add(buttonPanel, BorderLayout.SOUTH);
 
         // Add a window listener to show the WelcomeView when this window is closed
         addWindowListener(new java.awt.event.WindowAdapter() {

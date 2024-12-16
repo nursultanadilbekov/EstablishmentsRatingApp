@@ -64,21 +64,49 @@ public class DatabaseManager {
         }
     }
 
-    // Add a new establishment with user_id and category_id
-    public void addEstablishment(int userId, String name, String address, String description, int categoryId) throws SQLException {
-        String query = "INSERT INTO establishments (user_id, name, address, description, category_id, likes, dislikes, created_at, updated_at) " +
+    public void addEstablishment(int userId, String name, String address, String description, String categoryName) throws SQLException {
+        // SQL queries
+        String insertCategoryQuery = "INSERT INTO categories (name) VALUES (?) ON CONFLICT (name) DO NOTHING RETURNING id";
+        String selectCategoryQuery = "SELECT id FROM categories WHERE name = ?";
+        String insertEstablishmentQuery = "INSERT INTO establishments (user_id, name, address, description, category_id, likes, dislikes, created_at, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, userId); // Set the user ID
-            stmt.setString(2, name);
-            stmt.setString(3, address);
-            stmt.setString(4, description);
-            stmt.setInt(5, categoryId); // Set the category ID
-            stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
-            stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
-            stmt.executeUpdate();
+
+        try (PreparedStatement insertCategoryStmt = connection.prepareStatement(insertCategoryQuery);
+             PreparedStatement selectCategoryStmt = connection.prepareStatement(selectCategoryQuery);
+             PreparedStatement insertEstablishmentStmt = connection.prepareStatement(insertEstablishmentQuery)) {
+
+            // Step 1: Ensure the category exists
+            int categoryId = -1;
+            // Try to insert the category (if it doesn't already exist)
+            insertCategoryStmt.setString(1, categoryName);
+            ResultSet insertCategoryResult = insertCategoryStmt.executeQuery();
+            if (insertCategoryResult.next()) {
+                categoryId = insertCategoryResult.getInt("id"); // Get the ID of the newly inserted category
+            } else {
+                // Category already exists, fetch its ID
+                selectCategoryStmt.setString(1, categoryName);
+                ResultSet selectCategoryResult = selectCategoryStmt.executeQuery();
+                if (selectCategoryResult.next()) {
+                    categoryId = selectCategoryResult.getInt("id");
+                }
+            }
+
+            // Step 2: Add the establishment
+            if (categoryId != -1) {
+                insertEstablishmentStmt.setInt(1, userId);
+                insertEstablishmentStmt.setString(2, name);
+                insertEstablishmentStmt.setString(3, address);
+                insertEstablishmentStmt.setString(4, description);
+                insertEstablishmentStmt.setInt(5, categoryId);
+                insertEstablishmentStmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+                insertEstablishmentStmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
+                insertEstablishmentStmt.executeUpdate();
+            } else {
+                throw new SQLException("Failed to retrieve or create category.");
+            }
         }
     }
+
 
     // Fetch top establishments with updated fields
     public List<Establishment> getTopEstablishments() throws SQLException {
@@ -172,5 +200,28 @@ public class DatabaseManager {
                 }
             }
         }
+    }
+    // Method to get user ID by username
+    public int getUserId(String username) {
+        int userId = -1;  // Default value for invalid user ID
+
+        String query = "SELECT user_id FROM users WHERE username = ?"; // SQL query to fetch user ID
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            // Set the username parameter
+            stmt.setString(1, username);
+
+            // Execute query and get result set
+            ResultSet rs = stmt.executeQuery();
+
+            // Check if a user with the given username exists
+            if (rs.next()) {
+                // Retrieve the user ID from the result set
+                userId = rs.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return userId;
     }
 }

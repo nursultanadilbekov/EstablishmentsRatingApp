@@ -5,6 +5,7 @@ module com.example.rating {
     requires jdk.compiler;
     requires java.desktop;
     requires jbcrypt;
+    requires org.slf4j;
 
 
     opens com.example.rating to javafx.fxml;

@@ -5,7 +5,7 @@ import com.example.rating.controller.EstablishmentController;
 import javax.swing.*;
 import java.awt.*;
 
-public class MainView {
+public class MainView extends JFrame {
     private final JFrame frame;
     private final JPanel mainPanel;
     private final Sidebar sidebar;
@@ -17,6 +17,7 @@ public class MainView {
 
         // Initial layout: Add the sidebar and default view
         mainPanel.add(sidebar.getView(), BorderLayout.WEST);
+        sidebar.addToggleButton(this);
         mainPanel.add(controller.getViewEstablishmentsView(), BorderLayout.CENTER);
 
         frame.add(mainPanel);

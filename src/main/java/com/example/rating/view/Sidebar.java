@@ -9,9 +9,13 @@ import java.util.function.Consumer;
 
 public class Sidebar {
     private final JPanel sidebarPanel;
+    private final JPanel containerPanel;
+    private boolean isSidebarVisible = true;
 
     public Sidebar(EstablishmentController controller, Consumer<JPanel> setViewCallback) {
         sidebarPanel = createSidebar(controller, setViewCallback);
+        containerPanel = new JPanel(new BorderLayout());
+        containerPanel.add(sidebarPanel, BorderLayout.WEST);
     }
 
     private JPanel createSidebar(EstablishmentController controller, Consumer<JPanel> setViewCallback) {
@@ -61,6 +65,29 @@ public class Sidebar {
     }
 
     public JPanel getView() {
-        return sidebarPanel;
+        return containerPanel;
+    }
+
+    public void addToggleButton(JFrame frame) {
+        JButton toggleButton = new JButton("☰");
+        toggleButton.setFont(new Font("Arial", Font.BOLD, 14));
+        toggleButton.setForeground(Color.WHITE);
+        toggleButton.setBackground(new Color(100, 100, 100));
+        toggleButton.setFocusPainted(false);
+        toggleButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        toggleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        toggleButton.setToolTipText("Toggle Sidebar");
+
+        toggleButton.addActionListener(e -> {
+            isSidebarVisible = !isSidebarVisible;
+            sidebarPanel.setVisible(isSidebarVisible);
+            frame.revalidate();
+        });
+
+        JPanel togglePanel = new JPanel(new BorderLayout());
+        togglePanel.add(toggleButton, BorderLayout.WEST);
+        togglePanel.setBackground(new Color(50, 50, 50));
+        togglePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        containerPanel.add(togglePanel, BorderLayout.NORTH);
     }
 }
