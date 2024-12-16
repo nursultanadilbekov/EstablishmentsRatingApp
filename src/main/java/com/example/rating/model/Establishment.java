@@ -155,4 +155,11 @@ public class Establishment {
                 return "Unknown Category";
         }
     }
+    public int getLikesCount() {
+        return likes;
+    }
+
+    public int getDislikesCount() {
+        return dislikes;
+    }
 }

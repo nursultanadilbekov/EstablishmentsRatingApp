@@ -23,7 +23,6 @@ public class EstablishmentController {
     public EstablishmentController() throws SQLException {
         this.addEstablishmentView = new AddEstablishmentView();
         this.topEstablishmentsView = new TopEstablishmentsView();
-        this.viewEstablishmentsView = new ViewEstablishmentsView();
         this.databaseManager = new DatabaseManager();
 
         // Add listener for the Add Establishment button
@@ -36,26 +35,6 @@ public class EstablishmentController {
         });
 
     }
-
-//    // Handle button clicks and navigate accordingly
-//    public void handleButtonClick(String action) {
-//        switch (action) {
-//            case "AddEstablishment":
-//                getAddEstablishmentView();
-//                break;
-//            case "TopEstablishments":
-//                updateTopEstablishments();
-//                getTopEstablishmentsView();
-//                break;
-//            case "ViewEstablishments":
-//                updateViewEstablishments();
-//                getViewEstablishmentsView();
-//                break;
-//            default:
-//                JOptionPane.showMessageDialog(null, "Unknown action: " + action);
-//        }
-//    }
-
     // Handle the Add Establishment button click
     public void handleAddEstablishment() {
         String name = addEstablishmentView.getName();
@@ -83,25 +62,25 @@ public class EstablishmentController {
         return 1;  // Placeholder for category ID
     }
 
-    // Like an establishment
-    public void likeEstablishment(int id) {
-        try {
-            databaseManager.likeEstablishment(id);
-            updateTopEstablishments();
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error liking establishment.");
-        }
-    }
-
-    // Dislike an establishment
-    public void dislikeEstablishment(int id) {
-        try {
-            databaseManager.dislikeEstablishment(id);
-            updateTopEstablishments();
-        } catch (SQLException e) {
-            handleDatabaseError(e, "Error disliking establishment.");
-        }
-    }
+//    // Like an establishment
+//    public void likeEstablishment(int id) {
+//        try {
+//            databaseManager.likeEstablishment(id);
+//            updateTopEstablishments();
+//        } catch (SQLException e) {
+//            handleDatabaseError(e, "Error liking establishment.");
+//        }
+//    }
+//
+//    // Dislike an establishment
+//    public void dislikeEstablishment(int id) {
+//        try {
+//            databaseManager.dislikeEstablishment(id);
+//            updateTopEstablishments();
+//        } catch (SQLException e) {
+//            handleDatabaseError(e, "Error disliking establishment.");
+//        }
+//    }
 
     // Handle database errors and show error messages
     private void handleDatabaseError(SQLException e, String message) {
@@ -133,17 +112,16 @@ public class EstablishmentController {
         return viewEstablishmentsView.getView();
     }
 
-
-    // Update the top establishments list in the view
-    private void updateTopEstablishments() {
+    public void updateTopEstablishments() {
         try {
             List<Establishment> establishments = databaseManager.getTopEstablishments();
-            topEstablishmentsView.updateList(establishments);
+            topEstablishmentsView.setEstablishments(establishments);  // Update the view with new data
         } catch (SQLException e) {
             log.error("Failed to fetch top establishments", e);
             JOptionPane.showMessageDialog(null, "Error fetching top establishments.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     // Update the all establishments list in the view
     private void updateViewEstablishments() {
@@ -164,5 +142,40 @@ public class EstablishmentController {
             e.printStackTrace();
             return false;
         }
+    }
+    public void likeEstablishment(int id, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) {
+        try {
+            databaseManager.likeEstablishment(id);
+            updateEstablishmentCounts(id, likeCountLabel, dislikeCountLabel);
+            disableButtons(likeButton, dislikeButton);  // Disable buttons after action
+        } catch (SQLException e) {
+            handleDatabaseError(e, "Error liking establishment.");
+        }
+    }
+
+    public void dislikeEstablishment(int id, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) {
+        try {
+            databaseManager.dislikeEstablishment(id);
+            updateEstablishmentCounts(id, likeCountLabel, dislikeCountLabel);
+            disableButtons(likeButton, dislikeButton);  // Disable buttons after action
+        } catch (SQLException e) {
+            handleDatabaseError(e, "Error disliking establishment.");
+        }
+    }
+
+    private void updateEstablishmentCounts(int id, JLabel likeCountLabel, JLabel dislikeCountLabel) {
+        try {
+            int likes = databaseManager.getLikesCount(id);
+            int dislikes = databaseManager.getDislikesCount(id);
+            likeCountLabel.setText("Likes: " + likes);
+            dislikeCountLabel.setText("Dislikes: " + dislikes);
+        } catch (SQLException e) {
+            handleDatabaseError(e, "Error fetching establishment counts.");
+        }
+    }
+
+    private void disableButtons(JButton likeButton, JButton dislikeButton) {
+        likeButton.setEnabled(false);
+        dislikeButton.setEnabled(false);
     }
 }

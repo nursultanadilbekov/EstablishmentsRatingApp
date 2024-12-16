@@ -156,15 +156,15 @@ public class DatabaseManager {
     }
 
 
-    // Like an establishment
-    public void likeEstablishment(int id) throws SQLException {
-        updateLikesOrDislikes(id, "likes");
-    }
-
-    // Dislike an establishment
-    public void dislikeEstablishment(int id) throws SQLException {
-        updateLikesOrDislikes(id, "dislikes");
-    }
+//    // Like an establishment
+//    public void likeEstablishment(int id) throws SQLException {
+//        updateLikesOrDislikes(id, "likes");
+//    }
+//
+//    // Dislike an establishment
+//    public void dislikeEstablishment(int id) throws SQLException {
+//        updateLikesOrDislikes(id, "dislikes");
+//    }
 
     // Helper method to increment likes or dislikes and update the `updated_at` field
     private void updateLikesOrDislikes(int id, String column) throws SQLException {
@@ -223,5 +223,73 @@ public class DatabaseManager {
         }
 
         return userId;
+    }
+
+    // Method to save the user's preference (like or dislike)
+    public void saveUserPreference(int userId, int establishmentId, String preference) throws SQLException {
+        String query = "INSERT INTO user_preferences (user_id, establishment_id, preference) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE preference = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, establishmentId);
+            stmt.setString(3, preference);
+            stmt.setString(4, preference);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Method to fetch the preferences of a user
+    public String getUserPreference(int userId, int establishmentId) throws SQLException {
+        String query = "SELECT preference FROM user_preferences WHERE user_id = ? AND establishment_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, establishmentId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("preference");
+            }
+            return null;  // No preference found
+        }
+    }
+    public void likeEstablishment(int establishmentId) throws SQLException {
+        String query = "UPDATE establishments SET likes = likes + 1 WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void dislikeEstablishment(int establishmentId) throws SQLException {
+        String query = "UPDATE establishments SET dislikes = dislikes + 1 WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public int getLikesCount(int establishmentId) throws SQLException {
+        String query = "SELECT likes FROM establishments WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("likes");
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getDislikesCount(int establishmentId) throws SQLException {
+        String query = "SELECT dislikes FROM establishments WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("dislikes");
+                }
+            }
+        }
+        return 0;
     }
 }
