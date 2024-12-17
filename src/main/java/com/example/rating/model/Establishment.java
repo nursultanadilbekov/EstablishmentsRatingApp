@@ -42,7 +42,7 @@ public class Establishment {
     public int getRating(){
         return likes;
     }
-    
+
 
     public void setName(String name) {
         if (name == null || name.trim().isEmpty()) {

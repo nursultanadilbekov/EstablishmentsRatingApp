@@ -8,8 +8,10 @@ import java.awt.*;
 public class WelcomeView extends JFrame {
     private JButton loginButton;
     private JButton registerButton;
+    private EstablishmentController establishmentController;
 
     public WelcomeView(EstablishmentController controller) {
+        this.establishmentController = controller;
         setTitle("Welcome");
         setSize(300, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

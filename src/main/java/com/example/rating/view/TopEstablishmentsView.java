@@ -1,5 +1,6 @@
 package com.example.rating.view;
 
+import com.example.rating.controller.EstablishmentController;
 import com.example.rating.model.Establishment;
 
 import javax.swing.*;
@@ -7,8 +8,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,48 +17,19 @@ public class TopEstablishmentsView {
     private List<Establishment> allEstablishments;
     private JComboBox<String> categoryFilter;
     private JTextField searchField;
+    private EstablishmentController establishmentController;
+    private LoginView loginView;
 
-    public TopEstablishmentsView() {
+    public TopEstablishmentsView(EstablishmentController controller) {
+
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
         // Title Label
-        JLabel label = new JLabel("Top Establishments", SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 24));
-        label.setForeground(new Color(50, 50, 150));
+        panel.add(createTitleLabel(), BorderLayout.NORTH);
 
         // Filter Panel (Category, Search by Name)
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterPanel.setBackground(Color.WHITE);
-
-        // Category Filter
-        categoryFilter = new JComboBox<>();
-        categoryFilter.addItem("All Categories");
-        categoryFilter.addItem("Restaurant");
-        categoryFilter.addItem("Cafe");
-        categoryFilter.addItem("Hotel");
-        // Add more categories as needed
-        categoryFilter.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateList();
-            }
-        });
-
-        // Search by Name
-        searchField = new JTextField(15);
-        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
-        searchField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateList();
-            }
-        });
-
-        filterPanel.add(new JLabel("Filter by Category:"));
-        filterPanel.add(categoryFilter);
-        filterPanel.add(new JLabel("Search by Name:"));
-        filterPanel.add(searchField);
+        panel.add(createFilterPanel(), BorderLayout.SOUTH);
 
         // Establishments Panel
         postPanel = new JPanel();
@@ -67,8 +37,6 @@ public class TopEstablishmentsView {
         postPanel.setBackground(Color.WHITE);
         postPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        panel.add(label, BorderLayout.NORTH);
-        panel.add(filterPanel, BorderLayout.SOUTH);
         panel.add(new JScrollPane(postPanel), BorderLayout.CENTER);
     }
 
@@ -82,37 +50,74 @@ public class TopEstablishmentsView {
             updateList();
         }
     }
+
+    private JLabel createTitleLabel() {
+        JLabel label = new JLabel("Top 10 Establishments", SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 24));
+        label.setForeground(new Color(50, 50, 150));
+        return label;
+    }
+
+    private JPanel createFilterPanel() {
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterPanel.setBackground(Color.WHITE);
+
+        // Category Filter
+        categoryFilter = createCategoryFilter();
+        categoryFilter.addActionListener(e -> updateList());
+
+        // Search by Name
+        searchField = new JTextField(15);
+        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
+        searchField.addActionListener(e -> updateList());
+
+        filterPanel.add(new JLabel("Category:"));
+        filterPanel.add(categoryFilter);
+        filterPanel.add(new JLabel("Search:"));
+        filterPanel.add(searchField);
+
+        return filterPanel;
+    }
+
+    private JComboBox<String> createCategoryFilter() {
+        JComboBox<String> categoryFilter = new JComboBox<>();
+        categoryFilter.addItem("All Categories");
+        categoryFilter.addItem("Restaurant");
+        categoryFilter.addItem("Cafe");
+        categoryFilter.addItem("Hotel");
+        // Add more categories as needed
+        return categoryFilter;
+    }
+
     public void updateList() {
         postPanel.removeAll();
 
-        // Filter by Category
         String selectedCategory = (String) categoryFilter.getSelectedItem();
         String searchText = searchField.getText().toLowerCase();
 
-        List<Establishment> filteredEstablishments = allEstablishments.stream()
-                .filter(establishment -> (selectedCategory.equals("All Categories") || establishment.getCategory().equalsIgnoreCase(selectedCategory)))
-                .filter(establishment -> establishment.getName().toLowerCase().contains(searchText))
-                .collect(Collectors.toList());
-
-        // Sort by Like Percentage
-        filteredEstablishments.sort(new Comparator<Establishment>() {
-            @Override
-            public int compare(Establishment e1, Establishment e2) {
-                double likePercentage1 = (double) e1.getLikes() / (e1.getLikes() + e1.getDislikes()) * 100;
-                double likePercentage2 = (double) e2.getLikes() / (e2.getLikes() + e2.getDislikes()) * 100;
-                return Double.compare(likePercentage2, likePercentage1); // Descending order
-            }
-        });
+        List<Establishment> filteredEstablishments = filterEstablishments(selectedCategory, searchText);
+        filteredEstablishments.sort((e1, e2) -> Double.compare(calculateLikePercentage(e2), calculateLikePercentage(e1)));
 
         // Create and add post panels
-        for (Establishment establishment : filteredEstablishments) {
+        filteredEstablishments.forEach(establishment -> {
             JPanel post = createPostPanel(establishment);
             postPanel.add(post);
             postPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Space between posts
-        }
+        });
 
         postPanel.revalidate();
         postPanel.repaint();
+    }
+
+    private List<Establishment> filterEstablishments(String selectedCategory, String searchText) {
+        return allEstablishments.stream()
+                .filter(establishment -> selectedCategory.equals("All Categories") || establishment.getCategory().equalsIgnoreCase(selectedCategory))
+                .filter(establishment -> establishment.getName().toLowerCase().contains(searchText))
+                .collect(Collectors.toList());
+    }
+
+    private double calculateLikePercentage(Establishment establishment) {
+        return (double) establishment.getLikes() / (establishment.getLikes() + establishment.getDislikes()) * 100;
     }
 
     private JPanel createPostPanel(Establishment establishment) {
@@ -122,6 +127,21 @@ public class TopEstablishmentsView {
         postPanel.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
 
         // Post Header: Establishment Name and Category
+        postPanel.add(createHeaderPanel(establishment));
+
+        // Post Image (if any) or placeholder
+        postPanel.add(createImagePanel());
+
+        // Post Content: Description and Stats
+        postPanel.add(createContentPanel(establishment));
+
+        // Post Footer: Likes, Dislikes, and Follow Button
+        postPanel.add(createFooterPanel(establishment));
+
+        return postPanel;
+    }
+
+    private JPanel createHeaderPanel(Establishment establishment) {
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         headerPanel.setBackground(Color.WHITE);
         JLabel nameLabel = new JLabel(establishment.getName());
@@ -133,12 +153,22 @@ public class TopEstablishmentsView {
         headerPanel.add(nameLabel);
         headerPanel.add(categoryLabel);
 
-        // Post Image (if any) or placeholder
+        return headerPanel;
+    }
+
+    private JPanel createImagePanel() {
         JLabel imageLabel = new JLabel();
-        imageLabel.setIcon(new ImageIcon("path/to/placeholder-image.jpg"));
+        imageLabel.setIcon(new ImageIcon("path/to/thumb-up-icon.png"));
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Post Content: Description and Stats
+        JPanel imagePanel = new JPanel();
+        imagePanel.setBackground(Color.WHITE);
+        imagePanel.add(imageLabel);
+
+        return imagePanel;
+    }
+
+    private JPanel createContentPanel(Establishment establishment) {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.WHITE);
@@ -153,13 +183,23 @@ public class TopEstablishmentsView {
 
         contentPanel.add(descriptionArea);
 
-        // Post Footer: Likes, Dislikes, and Follow Button
+        return contentPanel;
+    }
+
+    private JPanel createFooterPanel(Establishment establishment) {
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         footerPanel.setBackground(Color.WHITE);
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
-        // Thumbs Up/Down for likes/dislikes
+        JPanel likesPanel = createLikesPanel(establishment);
+        footerPanel.add(createFavouriteButton(establishment));
+        footerPanel.add(likesPanel);
+
+        return footerPanel;
+    }
+
+    private JPanel createLikesPanel(Establishment establishment) {
         JPanel likesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         likesPanel.setBackground(Color.WHITE);
 
@@ -169,29 +209,39 @@ public class TopEstablishmentsView {
         likesPanel.add(likeIcon);
         likesPanel.add(dislikeIcon);
 
-        // Follow button
-        JButton followButton = new JButton("Follow");
-        followButton.setBackground(new Color(0, 148, 255));
-        followButton.setForeground(Color.WHITE);
-        followButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        followButton.setFocusPainted(false);
-        followButton.setPreferredSize(new Dimension(100, 30));
-        followButton.addActionListener(new ActionListener() {
+        return likesPanel;
+    }
+
+    // Modify the createFavouriteButton method
+    private JLabel createFavouriteButton(Establishment establishment) {
+        JLabel heartIcon = new JLabel();
+        ImageIcon outlineHeart = new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/outline_heart")
+                .getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH));
+        ImageIcon filledHeart = new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/filled_heart")
+                .getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH));
+
+        heartIcon.setIcon(outlineHeart);
+        heartIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        heartIcon.setToolTipText("Follow this establishment");
+
+        heartIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+            private boolean isFilled = false;
             @Override
-            public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(panel, "You followed " + establishment.getName() + "!");
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (!isFilled) {
+                    heartIcon.setIcon(filledHeart);
+                    JOptionPane.showMessageDialog(panel, "Added to favourites: " + establishment.getName() + "!");
+                    establishmentController.addFavourite(establishment);
+                } else {
+                    heartIcon.setIcon(outlineHeart);
+                    JOptionPane.showMessageDialog(panel, "Removed from favourites: " + establishment.getName() + "!");
+                    establishmentController.removeFavourite(establishment);
+                }
+                isFilled = !isFilled;
             }
         });
 
-        footerPanel.add(likesPanel);
-        footerPanel.add(followButton);
-
-        // Add components to the post panel
-        postPanel.add(headerPanel);
-        postPanel.add(imageLabel);
-        postPanel.add(contentPanel);
-        postPanel.add(footerPanel);
-
-        return postPanel;
+        return heartIcon;
     }
+
 }

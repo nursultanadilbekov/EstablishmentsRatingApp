@@ -94,4 +94,8 @@ public class LoginView extends JFrame {
         // Display the login window
         setVisible(true);
     }
+    public String getUsername() {
+        return usernameField.getText();
+    }
+
 }

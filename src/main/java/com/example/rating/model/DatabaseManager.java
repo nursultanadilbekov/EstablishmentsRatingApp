@@ -154,18 +154,6 @@ public class DatabaseManager {
             }
         }
     }
-
-
-//    // Like an establishment
-//    public void likeEstablishment(int id) throws SQLException {
-//        updateLikesOrDislikes(id, "likes");
-//    }
-//
-//    // Dislike an establishment
-//    public void dislikeEstablishment(int id) throws SQLException {
-//        updateLikesOrDislikes(id, "dislikes");
-//    }
-
     // Helper method to increment likes or dislikes and update the `updated_at` field
     private void updateLikesOrDislikes(int id, String column) throws SQLException {
         String query = "UPDATE establishments SET " + column + " = " + column + " + 1, updated_at = ? WHERE id = ?";
@@ -173,82 +161,6 @@ public class DatabaseManager {
             stmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
             stmt.setInt(2, id);
             stmt.executeUpdate();
-        }
-    }
-
-    // Method to fetch an establishment by ID (useful for testing and debugging)
-    public Establishment getEstablishmentById(int id) throws SQLException {
-        String query = "SELECT * FROM establishments WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Establishment(
-                            rs.getInt("id"),
-                            rs.getInt("user_id"),
-                            rs.getString("name"),
-                            rs.getString("address"),
-                            rs.getString("description"),
-                            rs.getInt("likes"),
-                            rs.getInt("dislikes"),
-                            rs.getInt("category_id"),
-                            rs.getTimestamp("created_at").toLocalDateTime(),
-                            rs.getTimestamp("updated_at").toLocalDateTime()
-                    );
-                } else {
-                    throw new SQLException("Establishment not found for ID: " + id);
-                }
-            }
-        }
-    }
-    // Method to get user ID by username
-    public int getUserId(String username) {
-        int userId = -1;  // Default value for invalid user ID
-
-        String query = "SELECT user_id FROM users WHERE username = ?"; // SQL query to fetch user ID
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            // Set the username parameter
-            stmt.setString(1, username);
-
-            // Execute query and get result set
-            ResultSet rs = stmt.executeQuery();
-
-            // Check if a user with the given username exists
-            if (rs.next()) {
-                // Retrieve the user ID from the result set
-                userId = rs.getInt("user_id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return userId;
-    }
-
-    // Method to save the user's preference (like or dislike)
-    public void saveUserPreference(int userId, int establishmentId, String preference) throws SQLException {
-        String query = "INSERT INTO user_preferences (user_id, establishment_id, preference) VALUES (?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE preference = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, establishmentId);
-            stmt.setString(3, preference);
-            stmt.setString(4, preference);
-            stmt.executeUpdate();
-        }
-    }
-
-    // Method to fetch the preferences of a user
-    public String getUserPreference(int userId, int establishmentId) throws SQLException {
-        String query = "SELECT preference FROM user_preferences WHERE user_id = ? AND establishment_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, establishmentId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("preference");
-            }
-            return null;  // No preference found
         }
     }
     public void likeEstablishment(int establishmentId) throws SQLException {
@@ -291,5 +203,105 @@ public class DatabaseManager {
             }
         }
         return 0;
+    }
+    // Decrease likes count for the establishment in the database
+    public void decreaseLikesInDatabase(int establishmentId) throws SQLException {
+        String query = "UPDATE establishments SET likes = likes - 1 WHERE id = ?";
+
+        // Execute the query to decrease the likes count by 1
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Decrease dislikes count for the establishment in the database
+    public void decreaseDislikesInDatabase(int establishmentId) throws SQLException {
+        String query = "UPDATE establishments SET dislikes = dislikes - 1 WHERE id = ?";
+
+        // Execute the query to decrease the dislikes count by 1
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Helper method to get the updated likes count from the database
+    public int getUpdatedLikeCountFromDatabase(int establishmentId) throws SQLException {
+        String query = "SELECT likes FROM establishments WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("likes");
+                }
+            }
+        }
+        return 0;  // If no establishment was found, return 0
+    }
+
+    // Helper method to get the updated dislikes count from the database
+    public int getUpdatedDislikeCountFromDatabase(int establishmentId) throws SQLException {
+        String query = "SELECT dislikes FROM establishments WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, establishmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("dislikes");
+                }
+            }
+        }
+        return 0;  // If no establishment was found, return 0
+    }
+    public List<Establishment> getFilteredEstablishments(String searchQuery, String category) throws SQLException {
+        // SQL query to filter establishments by name and category
+        String sql = "SELECT * FROM establishments WHERE name ILIKE ? AND category_id IN (SELECT id FROM categories WHERE name ILIKE ?) ORDER BY created_at DESC";
+
+        // Prepare the statement with the provided query
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            // Set the search parameters for name and category
+            stmt.setString(1, "%" + searchQuery + "%");
+            stmt.setString(2, "%" + category + "%");
+
+            // Execute the query and process the result
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Establishment> establishments = new ArrayList<>();
+                while (rs.next()) {
+                    // Create an Establishment object for each row in the result
+                    establishments.add(new Establishment(
+                            rs.getInt("id"),
+                            rs.getInt("user_id"),
+                            rs.getString("name"),
+                            rs.getString("address"),
+                            rs.getString("description"),
+                            rs.getInt("likes"),
+                            rs.getInt("dislikes"),
+                            rs.getInt("category_id"),
+                            rs.getTimestamp("created_at").toLocalDateTime(),
+                            rs.getTimestamp("updated_at").toLocalDateTime()
+                    ));
+                }
+                return establishments;
+            }
+        } catch (SQLException e) {
+            // Handle any SQL exceptions
+            System.err.println("SQL Error: " + e.getMessage());
+            throw e;
+        }
+    }
+    public boolean addFavourite(Favourite favourite) {
+        String sql = "INSERT INTO favourites (user_id, establishment_id) VALUES (?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, favourite.getUserId());
+            stmt.setInt(2, favourite.getEstablishmentId());
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
