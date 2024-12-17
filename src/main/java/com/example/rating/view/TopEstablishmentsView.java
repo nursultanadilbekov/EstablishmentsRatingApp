@@ -21,7 +21,6 @@ public class TopEstablishmentsView {
     private LoginView loginView;
 
     public TopEstablishmentsView(EstablishmentController controller) {
-
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
@@ -55,28 +54,38 @@ public class TopEstablishmentsView {
         JLabel label = new JLabel("Top 10 Establishments", SwingConstants.CENTER);
         label.setFont(new Font("Arial", Font.BOLD, 24));
         label.setForeground(new Color(50, 50, 150));
+        label.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         return label;
     }
 
     private JPanel createFilterPanel() {
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Create a parent panel with a centered layout
+        JPanel filterPanelWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        filterPanelWrapper.setBackground(Color.WHITE);
+
+        // Create the actual filter panel with a horizontal layout for the fields
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         filterPanel.setBackground(Color.WHITE);
 
         // Category Filter
         categoryFilter = createCategoryFilter();
         categoryFilter.addActionListener(e -> updateList());
 
-        // Search by Name
+        // Search Field
         searchField = new JTextField(15);
-        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
         searchField.addActionListener(e -> updateList());
 
+        // Add components to the filter panel
         filterPanel.add(new JLabel("Category:"));
         filterPanel.add(categoryFilter);
         filterPanel.add(new JLabel("Search:"));
         filterPanel.add(searchField);
 
-        return filterPanel;
+        // Add the filter panel to the wrapper panel
+        filterPanelWrapper.add(filterPanel);
+
+        return filterPanelWrapper;
     }
 
     private JComboBox<String> createCategoryFilter() {
@@ -85,7 +94,6 @@ public class TopEstablishmentsView {
         categoryFilter.addItem("Restaurant");
         categoryFilter.addItem("Cafe");
         categoryFilter.addItem("Hotel");
-        // Add more categories as needed
         return categoryFilter;
     }
 
@@ -200,15 +208,10 @@ public class TopEstablishmentsView {
     }
 
     private JPanel createLikesPanel(Establishment establishment) {
-        JPanel likesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel likesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         likesPanel.setBackground(Color.WHITE);
-
-        JLabel likeIcon = new JLabel(establishment.getLikes() > 0 ? new ImageIcon("path/to/thumb-up-icon.png") : null);
-        JLabel dislikeIcon = new JLabel(establishment.getDislikes() > 0 ? new ImageIcon("path/to/thumb-down-icon.png") : null);
-
-        likesPanel.add(likeIcon);
-        likesPanel.add(dislikeIcon);
-
+        likesPanel.add(new JLabel("Likes: " + establishment.getLikes()));
+        likesPanel.add(new JLabel("Dislikes: " + establishment.getDislikes()));
         return likesPanel;
     }
 
@@ -243,5 +246,4 @@ public class TopEstablishmentsView {
 
         return heartIcon;
     }
-
 }

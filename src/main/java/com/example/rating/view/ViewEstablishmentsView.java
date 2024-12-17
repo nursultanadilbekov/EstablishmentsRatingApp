@@ -204,12 +204,12 @@
 
         private JPanel createFooterPanel() {
             JPanel footerPanel = new JPanel();
-            footerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            footerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Same spacing as filter panel
             footerPanel.setBackground(Color.WHITE);
 
             // Add search field
             searchField = new JTextField(15);
-            searchField.setFont(new Font("Arial", Font.PLAIN, 12));
+            searchField.setFont(new Font("Arial", Font.PLAIN, 14)); // Same font and size as filter panel
             searchField.setToolTipText("Search by establishment name");
             searchField.addKeyListener(new KeyAdapter() {
                 @Override
@@ -237,13 +237,14 @@
             });
 
             // Add components to footer panel
-            footerPanel.add(new JLabel("Search:"));
-            footerPanel.add(searchField);
             footerPanel.add(new JLabel("Category:"));
             footerPanel.add(categoryFilter);
+            footerPanel.add(new JLabel("Search:"));
+            footerPanel.add(searchField);
 
             return footerPanel;
         }
+
 
         private void filterEstablishments() throws SQLException {
             String searchQuery = searchField.getText().toLowerCase();  // Получаем поисковый запрос
@@ -255,16 +256,14 @@
             if ("All Categories".equals(selectedCategory)) {
                 filteredEstablishments = establishmentController.getAllEstablishments(); // Получаем все заведения
             } else {
-                // Если выбрана конкретная категория, фильтруем по категории и запросу
+                // Если выбрана конкретная категория, фильтруем по категории
                 filteredEstablishments = establishmentController.getFilteredEstablishments(searchQuery, selectedCategory);
             }
 
-            // Фильтрация по названию, если категория не выбрана (или выбрана "All Categories")
-            if (!"All Categories".equals(selectedCategory)) {
-                filteredEstablishments = filteredEstablishments.stream()
-                        .filter(establishment -> establishment.getName().toLowerCase().contains(searchQuery)) // Фильтрация по названию
-                        .collect(Collectors.toList());
-            }
+            // Фильтрация по названию заведений (независимо от категории)
+            filteredEstablishments = filteredEstablishments.stream()
+                    .filter(establishment -> establishment.getName().toLowerCase().contains(searchQuery)) // Фильтрация по названию
+                    .collect(Collectors.toList());
 
             // Обновляем UI с отфильтрованным списком заведений
             updateList(filteredEstablishments);
