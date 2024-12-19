@@ -2,6 +2,7 @@ package com.example.rating;
 
 import com.example.rating.controller.EstablishmentController;
 import com.example.rating.view.DialogUtil;
+import com.example.rating.view.TopEstablishmentsView;
 import com.example.rating.view.WelcomeView;
 
 import javax.swing.*;

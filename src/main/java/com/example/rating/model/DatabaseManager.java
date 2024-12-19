@@ -5,10 +5,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.rating.view.LoginView;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class DatabaseManager {
     private Connection connection;
+    private LoginView loginView;
 
     public DatabaseManager() throws SQLException {
         // Establish database connection (use your actual connection details)
@@ -154,6 +157,7 @@ public class DatabaseManager {
             }
         }
     }
+
     // Helper method to increment likes or dislikes and update the `updated_at` field
     private void updateLikesOrDislikes(int id, String column) throws SQLException {
         String query = "UPDATE establishments SET " + column + " = " + column + " + 1, updated_at = ? WHERE id = ?";
@@ -163,6 +167,7 @@ public class DatabaseManager {
             stmt.executeUpdate();
         }
     }
+
     public void likeEstablishment(int establishmentId) throws SQLException {
         String query = "UPDATE establishments SET likes = likes + 1 WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -204,6 +209,7 @@ public class DatabaseManager {
         }
         return 0;
     }
+
     // Decrease likes count for the establishment in the database
     public void decreaseLikesInDatabase(int establishmentId) throws SQLException {
         String query = "UPDATE establishments SET likes = likes - 1 WHERE id = ?";
@@ -255,6 +261,7 @@ public class DatabaseManager {
         }
         return 0;  // If no establishment was found, return 0
     }
+
     public List<Establishment> getFilteredEstablishments(String searchQuery, String category) throws SQLException {
         // SQL query to filter establishments by name and category
         String sql = "SELECT * FROM establishments WHERE name ILIKE ? AND category_id IN (SELECT id FROM categories WHERE name ILIKE ?) ORDER BY created_at DESC";
@@ -291,17 +298,100 @@ public class DatabaseManager {
             throw e;
         }
     }
-    public boolean addFavourite(Favourite favourite) {
-        String sql = "INSERT INTO favourites (user_id, establishment_id) VALUES (?, ?)";
+
+    public void addFavourite(int establishmentId) {
+        int userId = 3; // Retrieve the user ID
+        String sql = "INSERT INTO favourite (userid, establishmentid) VALUES (?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, favourite.getUserId());
-            stmt.setInt(2, favourite.getEstablishmentId());
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            // Set the parameters for the prepared statement
+            stmt.setInt(1, userId);
+            stmt.setInt(2, establishmentId);
+
+            // Execute the update query
+            stmt.executeUpdate();
+            System.out.println("Establishment added to favourites successfully.");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("The establishment is already in favourites for user ID: " + userId);
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
     }
+    public void removeFavourite(int establishmentId) {
+        int userId = getUserId(); // Retrieve the user ID
+        String sql = "DELETE FROM favourite WHERE userid = ? AND establishmentid = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            // Set the parameters for the prepared statement
+            stmt.setInt(1, userId);
+            stmt.setInt(2, establishmentId);
+
+            // Execute the update query
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Establishment removed from favourites successfully.");
+            } else {
+                System.out.println("No matching record found to remove.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to get user ID based on the username
+    public int getUserId() {
+
+        String username = loginView.getUsername();
+        String query = "SELECT id FROM users WHERE username = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id"); // Return the user ID
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching user ID for username: " + username, e);
+        }
+        return -1; // Return -1 if no user is found
+    }
+    public void updateRating(int userId, int establishmentId, boolean isLiked, boolean isDisliked) throws SQLException {
+        String query = "INSERT INTO rated (userid, establishmentid, isliked, isdisliked, ratedat) " +
+                "VALUES (?, ?, ?, ?, ?) " +
+                "ON CONFLICT (userid, establishmentid) " +
+                "DO UPDATE SET isliked = ?, isdisliked = ?, ratedat = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, establishmentId);
+            stmt.setBoolean(3, isLiked);
+            stmt.setBoolean(4, isDisliked);
+            stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+            stmt.setBoolean(6, isLiked);
+            stmt.setBoolean(7, isDisliked);
+            stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
+            stmt.executeUpdate();
+        }
+    }
+//    public void addFavourite(int establishmentId){
+//        int userId = getUserId();
+//        String sql = "INSERT INTO favourites (user_id, establishment_id) VALUES (?, ?)";
+//        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+//            stmt.setInt(1, userId);
+//            stmt.setInt(2, establishmentId);
+//            stmt.executeUpdate();
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//        }
+//        public void removeFavourite( int establishmentId) throws SQLException {
+//            int userId = getUserId();
+//            String sql = "DELETE FROM favourites WHERE user_id = ? AND establishment_id = ?";
+//            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+//                stmt.setInt(1, userId);
+//                stmt.setInt(2, establishmentId);
+//                stmt.executeUpdate();
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
 }

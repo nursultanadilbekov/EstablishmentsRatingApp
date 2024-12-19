@@ -14,10 +14,10 @@ import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
-public class EstablishmentController {
+public class EstablishmentController  {
     private static final Logger log = LoggerFactory.getLogger(EstablishmentController.class);
+    private final TopEstablishmentsView topEstablishmentsView;
     private AddEstablishmentView addEstablishmentView;
-    private TopEstablishmentsView topEstablishmentsView;
     private ViewEstablishmentsView viewEstablishmentsView;
     private DatabaseManager databaseManager;
     private Favourite favourite;
@@ -173,21 +173,17 @@ public class EstablishmentController {
             return false;
         }
     }
-    public void likeEstablishment(int id, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) {
+    public void addLike(int establishmentId) {
         try {
-            databaseManager.likeEstablishment(id);
-            updateEstablishmentCounts(id, likeCountLabel, dislikeCountLabel);
-            disableButtons(likeButton, dislikeButton);  // Disable buttons after action
+            databaseManager.likeEstablishment(establishmentId);
         } catch (SQLException e) {
             handleDatabaseError(e, "Error liking establishment.");
         }
     }
 
-    public void dislikeEstablishment(int id, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) {
+    public void addDislike(int establishmentId) {
         try {
-            databaseManager.dislikeEstablishment(id);
-            updateEstablishmentCounts(id, likeCountLabel, dislikeCountLabel);
-            disableButtons(likeButton, dislikeButton);  // Disable buttons after action
+            databaseManager.dislikeEstablishment(establishmentId);
         } catch (SQLException e) {
             handleDatabaseError(e, "Error disliking establishment.");
         }
@@ -217,34 +213,12 @@ public class EstablishmentController {
         likeButton.setEnabled(establishment.getLikesCount() == 0); // Пример проверки
         dislikeButton.setEnabled(establishment.getDislikesCount() == 0); // Пример проверки
     }
-    public void removeLike(int establishmentId, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) throws SQLException {
-        // Decrease the like count in the database
-        // Example:
-        int updatedLikesCount = databaseManager.getUpdatedLikeCountFromDatabase(establishmentId);
-
-        // Update the like button appearance
-        likeButton.setIcon(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/likee")
-                .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH))); // Placeholder image or default icon
-
-        // Update the UI elements
-        likeCountLabel.setText("Likes: " + updatedLikesCount);
-
-        // Optionally, disable the "like" button or change its state if needed
+    public void removeLike(int establishmentId) throws SQLException {
+        databaseManager.decreaseLikesInDatabase(establishmentId);
     }
 
-    public void removeDislike(int establishmentId, JButton likeButton, JButton dislikeButton, JLabel likeCountLabel, JLabel dislikeCountLabel) throws SQLException {
-        // Decrease the dislike count in the database
-        int updatedDislikesCount = databaseManager.getUpdatedDislikeCountFromDatabase(establishmentId);
-
-        // Update the dislike button appearance (for example, changing the icon to indicate it's not disliked anymore)
-        dislikeButton.setIcon(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/dislikee")
-                .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH))); // Placeholder image or default icon
-
-        // Update the UI elements
-        dislikeCountLabel.setText("Dislikes: " + updatedDislikesCount); // Update the dislike count label
-
-        // Optionally, disable the "dislike" button or change its state if needed (e.g., after removal)
-        dislikeButton.setEnabled(true);  // Re-enable or reset button state as needed
+    public void removeDislike(int establishmentId) throws SQLException {
+       databaseManager.decreaseDislikesInDatabase(establishmentId);
     }
     // Method to retrieve filtered establishments based on search query and category
     public List<Establishment> getFilteredEstablishments(String searchQuery, String selectedCategory) throws SQLException {
@@ -253,18 +227,14 @@ public class EstablishmentController {
     public List<Establishment> getAllEstablishments() throws SQLException {
      return databaseManager.getAllEstablishments();
     }
-    public void addFavourite(Establishment establishment) {
-        int currentUserId = 1;
-        Favourite favourite = new Favourite(currentUserId, establishment.getId());
-        if (databaseManager.addFavourite(favourite)) {
-            System.out.println("Establishment added to favourites.");
-        } else {
-            System.out.println("Failed to add establishment to favourites.");
-        }
+    public void addFavourite(int id){
+     databaseManager.addFavourite(id);
     }
 
-    public void removeFavourite(Establishment establishment) {
-        // Logic for removing the favourite from the database
-        // Implement similar to addFavourite if required
+    public void removeFavourite(int id){
+     databaseManager.removeFavourite(id);
+    }
+    public void updateRating(int userId, int establishmentId, boolean isLiked, boolean isDisliked) throws SQLException {
+        databaseManager.updateRating(userId, establishmentId, isLiked, isDisliked);
     }
 }

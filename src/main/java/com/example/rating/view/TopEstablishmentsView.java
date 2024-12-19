@@ -8,6 +8,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,10 +23,10 @@ public class TopEstablishmentsView {
     private EstablishmentController establishmentController;
     private LoginView loginView;
 
-    public TopEstablishmentsView(EstablishmentController controller) {
+    public TopEstablishmentsView(EstablishmentController establishmentController) {
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-
+        this.establishmentController = establishmentController;
         // Title Label
         panel.add(createTitleLabel(), BorderLayout.NORTH);
 
@@ -215,7 +218,6 @@ public class TopEstablishmentsView {
         return likesPanel;
     }
 
-    // Modify the createFavouriteButton method
     private JLabel createFavouriteButton(Establishment establishment) {
         JLabel heartIcon = new JLabel();
         ImageIcon outlineHeart = new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/outline_heart")
@@ -223,27 +225,36 @@ public class TopEstablishmentsView {
         ImageIcon filledHeart = new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/filled_heart")
                 .getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH));
 
-        heartIcon.setIcon(outlineHeart);
-        heartIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        heartIcon.setToolTipText("Follow this establishment");
+        // Set the initial icon based on the establishment's favorite state
+        heartIcon.setIcon(establishment.isFavourite() ? filledHeart : outlineHeart);
+        heartIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        heartIcon.setToolTipText("Toggle Favourite");
 
-        heartIcon.addMouseListener(new java.awt.event.MouseAdapter() {
-            private boolean isFilled = false;
+        heartIcon.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (!isFilled) {
-                    heartIcon.setIcon(filledHeart);
-                    JOptionPane.showMessageDialog(panel, "Added to favourites: " + establishment.getName() + "!");
-                    establishmentController.addFavourite(establishment);
+            public void mouseClicked(MouseEvent e) {
+                // Toggle the favourite state
+                boolean newFavouriteState = !establishment.isFavourite(); // Toggle the state
+
+                // Save the new favourite state
+                establishment.setFavourite(newFavouriteState); // Update establishment object state
+
+                // Optionally, persist the new favourite state in the database
+                // For example, you can use a controller to save this state to the database:
+                // establishmentController.saveFavouriteState(establishment.getId(), newFavouriteState);
+
+                // Update the button icon based on the new state
+                if (newFavouriteState) {
+                    establishmentController.addFavourite(establishment.getId());
+                    heartIcon.setIcon(filledHeart);  // Set the icon to filled heart
                 } else {
-                    heartIcon.setIcon(outlineHeart);
-                    JOptionPane.showMessageDialog(panel, "Removed from favourites: " + establishment.getName() + "!");
-                    establishmentController.removeFavourite(establishment);
+                    heartIcon.setIcon(outlineHeart);  // Set the icon to outlined heart
                 }
-                isFilled = !isFilled;
             }
         });
 
         return heartIcon;
     }
+
+
 }

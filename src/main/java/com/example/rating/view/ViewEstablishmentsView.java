@@ -21,6 +21,10 @@
         private EstablishmentController establishmentController;
         private JComboBox<String> categoryFilter;
         private JTextField searchField;
+        private JButton likeButton;
+        private JButton dislikeButton;
+        private Establishment establishment;
+
 
         public ViewEstablishmentsView(EstablishmentController establishmentController) {
             panel = new JPanel(new BorderLayout());
@@ -130,74 +134,147 @@
         }
 
         private JPanel createFooterPanel(Establishment establishment) throws SQLException {
+            setEstablishment(establishment);
             this.establishmentController = new EstablishmentController();
             JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
             footerPanel.setBackground(Color.WHITE);
 
-            // Like button - серый цвет по умолчанию
-            JButton likeButton = new JButton(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/likee")
-                    .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH))); // Resize the image to fit the button
-            likeButton.setPreferredSize(new Dimension(40, 40)); // Set a fixed size for the button
-            likeButton.setFocusPainted(false);
+            // Like button
+             likeButton = new JButton(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/likee")
+                    .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
+            likeButton.setPreferredSize(new Dimension(40, 40));
             likeButton.setBorder(BorderFactory.createEmptyBorder());
+            likeButton.setFocusPainted(false);
             likeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+//            likeButton.setBackground(Color.GRAY);
 
             // Dislike button
-            JButton dislikeButton = new JButton(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/dislikee")
-                    .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH))); // Resize the image to fit the button
-            dislikeButton.setPreferredSize(new Dimension(40, 40)); // Set a fixed size for the button
+             dislikeButton = new JButton(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/dislikee")
+                    .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
+            dislikeButton.setPreferredSize(new Dimension(40, 40));
             dislikeButton.setFocusPainted(false);
+            dislikeButton.setBackground(Color.GRAY);
             dislikeButton.setBorder(BorderFactory.createEmptyBorder());
             dislikeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            // Labels to show the counts of likes and dislikes
+            // Labels for like/dislike count
             JLabel likeCountLabel = new JLabel("Likes: " + establishment.getLikesCount());
-            likeCountLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            likeCountLabel.setForeground(Color.GRAY);
             JLabel dislikeCountLabel = new JLabel("Dislikes: " + establishment.getDislikesCount());
-            dislikeCountLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            dislikeCountLabel.setForeground(Color.GRAY);
 
-            // Boolean flag to track the like state
-            final boolean[] isLiked = {establishment.getLikesCount() > 0};
+            // Initially update button states
+            updateLikeDislikeState(likeButton, dislikeButton, establishment);
 
-            // Logic to handle "Like" button click
+            // Like button click handler
             likeButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (!isLiked[0]) {  // Убедитесь, что пользователь может поставить лайк только один раз
-                        establishmentController.likeEstablishment(establishment.getId(), likeButton, dislikeButton, likeCountLabel, dislikeCountLabel);
-                        isLiked[0] = true; // Устанавливаем флаг, что лайк поставлен
-                        likeButton.setIcon(new ImageIcon(new ImageIcon("src/main/resources/com/example/rating/likee")
-                                .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH))); // Обновляем иконку на "лайкнуто"
+                    if (establishment.isDisliked()) {
+//                        try {
+//                            establishmentController.updateRating(establishment.getUserId(), establishment.getId(), false, true);
+//                        } catch (SQLException ex) {
+//                            throw new RuntimeException(ex);
+//                        }
+                        // If the like button is clicked, disable the dislike button
+                        return; // Do nothing if like is active
                     }
+                    if (establishment.isLiked()) {
+//                        try {
+//                            establishmentController.updateRating(establishment.getUserId(), establishment.getId(), true, false);
+//                        } catch (SQLException ex) {
+//                            throw new RuntimeException(ex);
+//                        }
+                        // Remove like if already liked
+                        establishment.setLiked(false);
+                        try {
+                            establishmentController.removeLike(establishment.getId());
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    } else {
+                        // Add like if not liked yet
+                        establishment.setLiked(true);
+                        establishmentController.addLike(establishment.getId());
+                    }
+
+                    // Update like/dislike button states (gray out both buttons after selecting one)
+                    updateLikeDislikeState(likeButton, dislikeButton, establishment);
                 }
             });
 
-            // Logic to handle "Dislike" button click
+// Dislike button click handler
             dislikeButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    try {
-                        // Handle dislike functionality if needed
-                        if (establishment.getDislikesCount() > 0) {
-                            establishmentController.removeDislike(establishment.getId(), likeButton, dislikeButton, likeCountLabel, dislikeCountLabel);
-                        } else {
-                            establishmentController.dislikeEstablishment(establishment.getId(), likeButton, dislikeButton, likeCountLabel, dislikeCountLabel);
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
+                    if (establishment.isLiked()) {
+                        // If the like button is clicked, disable the dislike button
+                        return; // Do nothing if like is active
                     }
+
+                    if (establishment.isDisliked()) {
+                        // Remove dislike if already disliked
+                        establishment.setDisliked(false);
+                        try {
+                            establishmentController.removeDislike(establishment.getId());
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    } else {
+                        // Add dislike if not disliked yet
+                        establishment.setDisliked(true);
+                        establishmentController.addDislike(establishment.getId());
+                    }
+
+                    // Update like/dislike button states (gray out both buttons after selecting one)
+                    updateLikeDislikeState(likeButton, dislikeButton, establishment);
                 }
             });
 
-            // Add components to the footer panel
+            // Add components to footer panel
             footerPanel.add(likeButton);
             footerPanel.add(dislikeButton);
             footerPanel.add(likeCountLabel);
             footerPanel.add(dislikeCountLabel);
 
             return footerPanel;
+        }
+
+        private void updateLikeDislikeState(JButton likeButton, JButton dislikeButton, Establishment establishment) {
+            // If like is selected, disable dislike button and gray out both buttons
+            if (establishment.isLiked()) {
+                likeButton.setEnabled(false); // Disable the like button (because it is selected)
+                likeButton.setBackground(null); // Gray out the like button
+                dislikeButton.setEnabled(true); // Disable the dislike button (because it cannot be selected if like is active)
+                dislikeButton.setBackground(Color.GRAY);// Gray out the dislike button
+                try {
+                    establishmentController.updateRating(3, establishment.getId(),true, false);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            // If dislike is selected, gray out the like button but leave it enabled
+            else if (establishment.isDisliked()) {
+                dislikeButton.setEnabled(false); // Disable the dislike button (because it is selected)
+                dislikeButton.setBackground(null); // Gray out the dislike button
+                likeButton.setEnabled(true); // Enable the like button (because dislike is selected)
+                likeButton.setBackground(Color.GRAY); // Reset the like button color
+                try {
+                    establishmentController.updateRating(3,establishment.getId(),false, true);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            // If neither like nor dislike is selected, reset both buttons to normal state
+            else {
+                likeButton.setEnabled(true); // Enable the like button
+                likeButton.setBackground(null); // Reset the like button color
+                dislikeButton.setEnabled(true); // Enable the dislike button
+                dislikeButton.setBackground(null); // Reset the dislike button color
+                try {
+                    establishmentController.updateRating(3, establishment.getId(), false, false);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
 
@@ -271,7 +348,16 @@
 
 
 
+        public void setEstablishment(Establishment establishment) {
+            this.establishment = establishment;
+        }
+
         public JPanel getView() {
-            return panel;
+            // Ensure establishment is set
+            if (establishment != null) {
+                updateLikeDislikeState(likeButton, dislikeButton, establishment);
+            }
+            System.out.println(establishment);
+            return panel;  // Return the sidebar panel
         }
     }

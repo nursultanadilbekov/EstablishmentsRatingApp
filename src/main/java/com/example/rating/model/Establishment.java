@@ -13,6 +13,10 @@ public class Establishment {
     private int categoryId; // Changed from category to categoryId
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean isLiked;
+    private boolean isDisliked;
+    private boolean isFavorite;
+
 
     // Constructor
     public Establishment(int id, int userId, String name, String address, String description,
@@ -31,11 +35,12 @@ public class Establishment {
 
     // Getters and Setters with validation
     public int getId() {
+        System.out.println(userId);
         return id;
     }
-
-
-
+    public int getUserId() {
+        return userId;
+    }
     public String getName() {
         return name;
     }
@@ -161,5 +166,30 @@ public class Establishment {
 
     public int getDislikesCount() {
         return dislikes;
+    }
+    // Методы для получения и установки состояния
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.isLiked = liked;
+    }
+
+    public boolean isDisliked() {
+        return isDisliked;
+    }
+
+    public void setDisliked(boolean disliked) {
+        this.isDisliked = disliked;
+    }
+
+    // Methods for getting and setting the favourite state
+    public boolean isFavourite() {
+        return isFavorite;  // Return the current state of 'isFavorite'
+    }
+
+    public void setFavourite(boolean isFavourite) {
+        this.isFavorite = isFavourite;  // Update the favourite state
     }
 }
